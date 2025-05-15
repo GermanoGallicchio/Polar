@@ -1,46 +1,54 @@
 function [MR, idx_toTrim] = ...
-    PolarS_resultant(phaseVec, varargin)
+    PolarS_meanResultant(phaseVec, varargin)
 
-% computes resultant vector 
+% Computes the mean resultant vector for circular data.
 % 
-% USAGE:
+% SYNTAX:
 %
-% MR = PS_meanResultant(phaseVec)
+%   MR = PolarS_meanResultant(phaseVec)
+%   MR = PolarS_meanResultant(phaseVec, magnitudeVec)
+%   MR = PolarS_meanResultant(phaseVec, magnitudeVec, 'Trim', percentage)
 %
-% MR = PS_meanResultant(phaseVec, magnitudeVec)
 %
-% MR = PS_meanResultant(phaseVec, magnitudeVec, 'trim', 20)
-%
+% DESCRIPTION:
+%   This function calculates the mean resultant vector from a set of phase
+%   angles (and optionally, magnitudes) in circular data. The resultant
+%   vector represents the mean direction and magnitude of the data points.
+%   Optionally, outliers can be trimmed
 %
 %
 % INPUT:        
 %
-% phaseVec      phase angles [radians]
-%               size: N, 1 (column vector) 
+%   phaseVec - A column vector (N-by-1) of phase angles in radians.
 %               
 %
-% Optional INPUT:
+% OPTIONAL INPUT:
+%   magnitudeVec - A column vector (N-by-1) of magnitudes (any unit). 
+%                  Must be non-negative. If no input, it assumes as default
+%                  a vector of ones (equal weights for all angles).
+%   'Trim'       - A percentage (0-100) specifying the proportion of outliers 
+%                  to remove based on angular distance and (if provided)
+%                  magnitude. Defaults to 0 (no trimming).
 %
-% magnitudeVec  magnitudes [any unit]
-%               must be non negative
-%               size: N, 1 (column vector) 
 %
-%
-% Optional 'Name',Value pairs
-%
-% 'Trim'        a number expressing a percentage to trim
-%
-
-% OUTPUT
-%
-% MR            mean resultant
-%               complex-valued
-%               mean resultant length can be obtained as the modulus of R (i.e., abs(R))
-%               mean resultant angle can be obtained as the argument of R (i.e., angle(R))
+%   MR - A complex-valued mean resultant vector.
+%        - The modulus (abs(MR)) gives the mean resultant length.
+%        - The argument (angle(MR)) gives the mean resultant angle.
 % 
+% EXAMPLES:
 %
-% Author: Germano Gallicchio 
-% germano.gallicchio@gmail.com
+%   % Example 1: Basic usage with phase angles only
+%   MR = PolarS_meanResultant([0; pi/4; pi/2]);
+%
+%   % Example 2: Including magnitudes
+%   MR = PolarS_meanResultant([0; pi/4; pi/2], [1; 2; 1]);
+%
+%   % Example 3: Trimming 20% of outliers
+%   MR = PolarS_meanResultant([0; pi/4; pi/2], [1; 2; 1], 'Trim', 20);
+%
+%
+% AUTHOR:
+%   Germano Gallicchio (germano.gallicchio@gmail.com)
 
 %% sort input
 
