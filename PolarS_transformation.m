@@ -1,34 +1,32 @@
-function [RLent] = ...
-    PolarS_transformation(RLen,transformation)
+function [MRLent] = ...
+    PolarS_transformation(MRLen,transformation)
 
 % transforms data with domain [0, 1] into ...various options
 % 
-% USAGE:
+% SYNTAX
 %
-% Rt = PolarS_transformation(R,'logit')
+% MRLent = PolarS_transformation(MR,'logit')
 %
-% Rt = PolarS_transformation(R,'atanh')
+% MRLent = PolarS_transformation(MR,'atanh')
 %
 %
 %
 %
 % INPUT:        
 %
-% RLen          resultant length
+% MRLen         mean resultant length
 %               any size
 %               must be a real-valued number
 %               must have [0, 1] domain
 %
 % tranformation       char
-%                       logit transformation
+%                       'logit', 'atanh', 'FisherZ'
 %
 
 % OUTPUT
 %
-% RLent         transformed resultant length
-%               complex-valued
-%               resultant length can be obtained as the modulus of R (i.e., abs(R))
-%               resultant angle can be obtained as the argument of R (i.e., angle(R))
+% MRLent         transformed mean resultant length
+%               real-valued
 % 
 %
 % Author: Germano Gallicchio 
@@ -39,14 +37,14 @@ function [RLent] = ...
 p = inputParser;
 
 % add required parameter
-addRequired(p, 'RLen')
+addRequired(p, 'MRLen')
 addRequired(p, 'transformation')
 
 
 %% sanity checks
 
 % RLen is real
-if imag(RLen)~=0
+if imag(MRLen)~=0
     error('RLen must be real')
 end
 
@@ -58,9 +56,9 @@ logit = @(x) log((x./(1-x)));
 
 switch transformation
     case 'logit'
-        RLent = logit(RLen);
+        MRLent = logit(MRLen);
     case {'atanh' 'FisherZ'}
-        RLent = atanh(RLen);
+        MRLent = atanh(MRLen);
     otherwise
         error('this transformation has not been coded')
 end
