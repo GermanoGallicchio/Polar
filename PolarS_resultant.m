@@ -1,15 +1,15 @@
-function [R, idx_toTrim] = ...
+function [MR, idx_toTrim] = ...
     PolarS_resultant(phaseVec, varargin)
 
 % computes resultant vector 
 % 
 % USAGE:
 %
-% R = PS_resultant(phaseVec)
+% MR = PS_meanResultant(phaseVec)
 %
-% R = PS_resultant(phaseVec, magnitudeVec)
+% MR = PS_meanResultant(phaseVec, magnitudeVec)
 %
-% R = PS_resultant(phaseVec, magnitudeVec, 'trim', 20)
+% MR = PS_meanResultant(phaseVec, magnitudeVec, 'trim', 20)
 %
 %
 %
@@ -33,10 +33,10 @@ function [R, idx_toTrim] = ...
 
 % OUTPUT
 %
-% R             resultant
+% MR            mean resultant
 %               complex-valued
-%               resultant length can be obtained as the modulus of R (i.e., abs(R))
-%               resultant angle can be obtained as the argument of R (i.e., angle(R))
+%               mean resultant length can be obtained as the modulus of R (i.e., abs(R))
+%               mean resultant angle can be obtained as the argument of R (i.e., angle(R))
 % 
 %
 % Author: Germano Gallicchio 
@@ -121,7 +121,7 @@ end
 
 %% implementation
 
-R = mean(magnitudeVec.* exp(1i.*phaseVec)) / mean(magnitudeVec);
+MR = mean(magnitudeVec.* exp(1i.*phaseVec)) / mean(magnitudeVec);
 
 
 
