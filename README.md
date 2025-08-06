@@ -1,4 +1,4 @@
-# PolarStats
+# Polar
 A circular statistics toolbox for computing angular and radial metrics.
 
 ## Overview
