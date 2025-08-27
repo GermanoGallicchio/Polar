@@ -14,13 +14,12 @@ function [theta_centered, rho_centered ] = po_recenter(theta, rho)
 
 %% implementation
 
-data_mean = mean(exp(1i*theta),1);  % phase clustering over dimension 1
+theta_mean = mean(exp(1i*theta),1);  % phase clustering over dimension 1
+centered_complex = exp(1i*theta) - theta_mean;   % complex difference vectors
 
 
-% center data
-data_centered = rho.*(exp(1i*theta)-data_mean); % automatic broadcasting in modern matlab
+theta_centered = angle(centered_complex);
+rho_centered = abs(centered_complex);
 
 
-rho_centered   = abs(data_centered);
-theta_centered = angle(data_centered);
 
