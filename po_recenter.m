@@ -9,16 +9,17 @@ function [theta_centered, rho_centered ] = po_recenter(theta, rho)
 % AUTHOR:
 %   Germano Gallicchio (germano.gallicchio@gmail.com)
 
+%%
+
+
 %% implementation
 
-data = rho.*exp(1i*theta);
+data_mean = mean(exp(1i*theta),1);  % phase clustering over dimension 1
 
-data_mean = mean(data,1);
 
-data_centered = nan(size(data));
-for rIdx = 1:size(data,1)
-    data_centered(rIdx,:) = data(rIdx,:)-data_mean(1,:);
-end
+% center data
+data_centered = rho.*(exp(1i*theta)-data_mean); % automatic broadcasting in modern matlab
+
 
 rho_centered   = abs(data_centered);
 theta_centered = angle(data_centered);
