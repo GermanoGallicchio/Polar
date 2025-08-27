@@ -7,6 +7,8 @@ Germano Gallicchio, [Bangor University](https://www.bangor.ac.uk/)
 Reference: <br>
 Gallicchio, G. (2025). Polar. GitHub. https://github.com/GermanoGallicchio/Polar/
 
+Code developed on MATLAB R2022b on a Windows 10 device.
+
 ## Features
 - Compute mean resultant vector metrics (e.g., used for Inter-Trial Phase Clustering, Phase Locking, Phase Amplitude Coupling)
 - Optional trimming of outliers
