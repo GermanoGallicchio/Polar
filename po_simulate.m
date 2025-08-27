@@ -1,4 +1,4 @@
-function [theta, rho] = po_simulate(po_cfg)
+function [theta, rho] = po_simulate(simulationParams)
 
 % DESCRIPTION:
 %
@@ -12,21 +12,42 @@ function [theta, rho] = po_simulate(po_cfg)
 
 %% shortcuts
 
-nSamples  = po_cfg.simulationParams.nSamples;
-kappa     = po_cfg.simulationParams.kappa;
-mu        = po_cfg.simulationParams.mu;
-theta_rho = po_cfg.simulationParams.theta_rho;
+nSamples  = simulationParams.nSamples;
+kappa     = simulationParams.kappa;
+mu        = simulationParams.mu;
+theta_rho = simulationParams.theta_rho;
 nModes = length(mu);
 
+%% random seed
+
+
+
+
+fieldLbl = fieldnames(simulationParams);
+if ~any(strcmp(fieldLbl,'randomSeed'))
+    randomSeed = 42;
+    warning(['setting random seed for you: ' num2str(randomSeed)])
+else
+    randomSeed = simulationParams.randomSeed;
+end
+
+rng(randomSeed)
+%% implementation
 switch num2str(theta_rho)
-    case num2str([0 1])  % simulate rho with uniform theta
+    case num2str([0 1])  % simulate rho with uniform or given theta
         % build an empirical density distribution by drawing from a
         % theoretical distribution (sum of von Mises).
     
+        fieldLbl = fieldnames(simulationParams);
+        if ~any(strcmp(fieldLbl,'theta'))
+            thetaLim = [-pi, pi];  % create a range of phase values in (-pi, pi]
+            theta = linspace(thetaLim(1), thetaLim(2), nSamples+1);
+            theta(1) = [];
+        else
+            theta = simulationParams.theta;
+        end
+
         % empirical density distribution 
-        thetaLim = [-pi, pi];  % create a range of phase values in (-pi, pi]
-        theta = linspace(thetaLim(1), thetaLim(2), nSamples+1);
-        theta(1) = [];
         rho = po_vonMisesDensity(kappa,mu,theta);
 
         % ensure vectors are column
@@ -58,7 +79,7 @@ switch num2str(theta_rho)
     
 
     otherwise  % simulate both theta and rho
-        if strcmp(num2str(po_cfg.simulationParams.theta_rho),num2str([1 1]))  % simulate both theta and rho
+        if strcmp(num2str(simulationParams.theta_rho),num2str([1 1]))  % simulate both theta and rho
             warning('simulate theta and rho one at the time with same or different distributional parameters')
         end
         error('po_cfg.simulationParams.theta_rho must be either [0 1] or [1 0]')
