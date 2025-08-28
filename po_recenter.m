@@ -1,5 +1,6 @@
 function [theta_centered, rho_centered ] = po_demean(theta, rho)
 
+to do: relabel file to po_demean
 % DESCRIPTION: Center to the phase-only mean along first dimension
 %
 % INPUT:        
