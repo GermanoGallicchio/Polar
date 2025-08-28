@@ -1,12 +1,16 @@
 function [theta_centered, rho_centered ] = po_demean(theta, rho)
 
-to do: relabel file to po_demean
-% DESCRIPTION: Center to the phase-only mean along first dimension
+% DESCRIPTION:  remove the complex valued mean resultant from all complex
+% numbers and yields the demeaned complex numbers (in separate form of
+% theta and rho)
+%
 %
 % INPUT:        
 %
 %
-% usage: feed all 1s as rho for dPAC, then element wise product of magnitude and complex vector created by combining rho_centered and theta_centered
+% usage: feed all 1s as rho for dPAC, then element wise product of
+% magnitude and complex vector created by combining rho_centered and
+% theta_centered
 % 
 % AUTHOR:
 %   Germano Gallicchio (germano.gallicchio@gmail.com)
