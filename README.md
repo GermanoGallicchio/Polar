@@ -49,9 +49,28 @@ upcoming...
 ### Normalized U-statistic estimateor of the squared length of the mean resultant
 upcoming...
 
-## How to
-### compute Inter-Trial Phase Clustering
-upcoming...
 
-### compute Phase-Amplitude Coupling
-upcoming...
+## How to...
+
+### ...compute Inter-Trial Phase Clustering (aka, PLV)
+theta contains the phases of signal A
+rho contains the magnitudes of signal A ... we don't care about it
+```matlab
+po_meanResultant(theta, ones(size(theta)))
+```
+
+### ...compute Phase Amplitude Coupling
+theta contains the phases of signal A
+rho contains the magnitudes of signal B
+we just need the (normalized in you prefer) mean resultant length of rho exp(1i*theta)
+```matlab
+po_meanResultant(theta, rho)
+```
+
+### ...compute debiased Phase Amplitude Coupling
+theta contains the phases of signal A
+rho contains the magnitudes of signal B
+```matlab
+[theta_demeaned, rho_demeaned] = po_demean(theta,ones(size(theta)));
+po_meanResultant(theta_demeaned, rho.*rho_demeaned);
+```
