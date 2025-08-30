@@ -1,4 +1,4 @@
-function metrics = po_meanResultant(theta, rho)
+function metrics = po_meanResultant(po_cfg, theta, rho)
 
 % Computes mean resultant metrics
 % 
@@ -42,9 +42,26 @@ if length(size(theta))==2
         warning('metrics are computed on the first dimension. you might want to transpose theta and rho');
     end
 end
+
+
+% requests are possible
+metricsList = [
+    "meanResultantLength" 
+    "meanResultantLengthNorm" 
+    "meanResultantAngle" 
+    "UmeanResultantSquaredLength" 
+    "UmeanResultantSquaredLengthNorm"
+    ];
+
+metricsRequested = metricsList(ismember(metricsList,po_cfg.requests));
+if isempty(metricsRequested)
+    disp(metricsList)
+    error('po_cfg.requests should be a string vector of at least one of the above')
+end
+
 %% get data
 
-nSamples = length(theta);
+nSamples = size(theta,1);
 
 % assemble theta and rho to make complex numbers
 complVec = rho .* exp(1i.*theta);
@@ -57,134 +74,109 @@ complVec_matrix = reshape(complVec, nRows,nCols);
 
 %% implementation
 
-% length of mean resultant
-metric = nan(1,nCols);
-for colIdx = 1:nCols
-    c = complVec_matrix(:,colIdx);
-    metric(1,colIdx) = abs(sum(c,1)) / nSamples;
-end
-metric_reshaped = reshape(metric,1,nDims(2:end));  % reshape into original size, except the row dimension is squeezed
-meanResultantLength = metric_reshaped;
-
-
-% normalized length of mean resultant
-metric = nan(1,nCols);
-for colIdx = 1:nCols
-    c = complVec_matrix(:,colIdx);
-    numerator = abs(sum(c,1));
-    denominator = sum(abs(c),1);
-    if denominator~=0
-        metric(1,colIdx) = numerator ./ denominator;
-    else
-        metric(1,colIdx) = 0;
+% meanResultantLength
+if any(strcmp('meanResultantLength',metricsRequested))
+    metric = nan(1,nCols);
+    for colIdx = 1:nCols
+        c = complVec_matrix(:,colIdx);
+        metric(1,colIdx) = abs(sum(c,1)) / nSamples;
     end
+    metric_reshaped = reshape(metric,[ 1 nDims(2:end)]);  % reshape into original size, except the row dimension is squeezed
+    meanResultantLength = metric_reshaped;
+
+    % sort output
+    metrics.meanResultantLength             = meanResultantLength;
 end
-metric_reshaped = reshape(metric,1,nDims(2:end));  % reshape into original size, except the row dimension is squeezed
-meanResultantLengthNorm = metric_reshaped;
 
 
-% TO DO
-% "debiased" (just centered) length of mean resultant
+% meanResultantLengthNorm
+if any(strcmp('meanResultantLengthNorm',metricsRequested))
+    metric = nan(1,nCols);
+    for colIdx = 1:nCols
+        c = complVec_matrix(:,colIdx);
+        numerator = abs(sum(c,1));
+        denominator = sum(abs(c),1);
+        if denominator~=0
+            metric(1,colIdx) = numerator ./ denominator;
+        else
+            metric(1,colIdx) = 0;
+        end
+    end
+    metric_reshaped = reshape(metric,[ 1 nDims(2:end)]);  % reshape into original size, except the row dimension is squeezed
+    meanResultantLengthNorm = metric_reshaped;
 
-% TO DO
-% "debiased" (just centered) normalized length of mean resultant
-
-
-% angle of mean resultant
-metric = nan(1,nCols);
-for colIdx = 1:nCols
-    c = complVec_matrix(:,colIdx);
-    metric(1,colIdx) = angle(sum(c,1));
+    % sort output
+    metrics.meanResultantLengthNorm         = meanResultantLengthNorm;
 end
-metric_reshaped = reshape(metric,1,nDims(2:end));  % reshape into original size, except the row dimension is squeezed
-meanResultantAngle = metric_reshaped;
 
 
+% meanResultantAngle
+if any(strcmp('meanResultantAngle',metricsRequested))
+    metric = nan(1,nCols);
+    for colIdx = 1:nCols
+        c = complVec_matrix(:,colIdx);
+        metric(1,colIdx) = angle(sum(c,1));
+    end
+    metric_reshaped = reshape(metric,[ 1 nDims(2:end)]);  % reshape into original size, except the row dimension is squeezed
+    meanResultantAngle = metric_reshaped;
 
+    % sort output
+    metrics.meanResultantAngle              = meanResultantAngle;
+end
+
+
+% UmeanResultantSquaredLength 
 % U-statistic estimator of the squared length of mean resultant
-metric = nan(1,nCols);
-for colIdx = 1:nCols
-    c = complVec_matrix(:,colIdx);
-    total_sum = sum(sum(c*c'));  % sum all elements of the matrix
-    diag_sum  = sum(diag(c*c')); % sum only the diagonal
-    metric(1,colIdx) = (total_sum - diag_sum) / (nSamples*(nSamples-1));
-end
-metric = real(metric);    % due to computer rounding precision, there can be a tiny residual imaginary part that should not be there and that must be ignored
-metric_reshaped = reshape(metric,1,nDims(2:end));  % reshape into original size, except the row dimension is squeezed
-UmeanResultantSquaredLength = metric_reshaped;
-
-
-% normalized U-statistic estimator of the squared length of mean resultant
-metric = nan(1,nCols);
-for colIdx = 1:nCols
-    c = complVec_matrix(:,colIdx);
-
-    total_sum = sum(sum(c*c'));  % sum all elements of the matrix
-    diag_sum  = sum(diag(c*c')); % sum only the diagonal
-    numerator = (total_sum - diag_sum);
-
-    total_sum = sum(sum(abs(c) * abs(c)'));
-    diag_sum = sum(diag(abs(c)*abs(c)'));
-    denominator = total_sum - diag_sum;
-
-    if denominator ~= 0
-        metric(1,colIdx) =  numerator ./ denominator;
-    else
-        metric(1,colIdx) = 0;
+if any(strcmp('UmeanResultantSquaredLength',metricsRequested))
+    metric = nan(1,nCols);
+    for colIdx = 1:nCols
+        c = complVec_matrix(:,colIdx);
+        total_sum = sum(sum(c*c'));  % sum all elements of the matrix
+        diag_sum  = sum(diag(c*c')); % sum only the diagonal
+        metric(1,colIdx) = (total_sum - diag_sum) / (nSamples*(nSamples-1));
     end
+    metric = real(metric);    % due to computer rounding precision, there can be a tiny residual imaginary part that should not be there and that must be ignored
+    metric_reshaped = reshape(metric,[ 1 nDims(2:end)]);  % reshape into original size, except the row dimension is squeezed
+    UmeanResultantSquaredLength = metric_reshaped;
+    
+    % sort output
+    metrics.UmeanResultantSquaredLength     = UmeanResultantSquaredLength;
 end
-metric = real(metric);    % due to computer rounding precision, there can be a tiny residual imaginary part that should not be there and that must be ignored
-metric_reshaped = reshape(metric,1,nDims(2:end));  % reshape into original size, except the row dimension is squeezed
-UmeanResultantSquaredLengthNorm = metric_reshaped;
 
-% --- temporary just to check that strategy applied outside this function works
-% dPAC
-% build unit-length vectors with phase information only
-metric = nan(1,nCols);
-for colIdx = 1:nCols
-    
-    c = complVec_matrix(:,colIdx);
-    %theta2 = angle(c);
-    
-    %metric(1,colIdx) = abs(mean(  rho .* exp(1i*theta2)    )) ;
+% UmeanResultantSquaredLengthNorm
+% normalized U-statistic estimator of the squared length of mean resultant
+if any(strcmp('UmeanResultantSquaredLengthNorm',metricsRequested))
+    metric = nan(1,nCols);
+    for colIdx = 1:nCols
+        c = complVec_matrix(:,colIdx);
 
-    
-    
-    phi = mean(1.*exp(1i*theta));
-    metric(1,colIdx) = abs(mean(  rho .* (exp(1i*theta)-phi)    )) ;
-    
+        total_sum = sum(sum(c*c'));  % sum all elements of the matrix
+        diag_sum  = sum(diag(c*c')); % sum only the diagonal
+        numerator = (total_sum - diag_sum);
+
+        total_sum = sum(sum(abs(c) * abs(c)'));
+        diag_sum = sum(diag(abs(c)*abs(c)'));
+        denominator = total_sum - diag_sum;
+
+        if denominator ~= 0
+            metric(1,colIdx) =  numerator ./ denominator;
+        else
+            metric(1,colIdx) = 0;
+        end
+    end
+    metric = real(metric);    % due to computer rounding precision, there can be a tiny residual imaginary part that should not be there and that must be ignored
+    metric_reshaped = reshape(metric,[ 1 nDims(2:end)]);  % reshape into original size, except the row dimension is squeezed
+    UmeanResultantSquaredLengthNorm = metric_reshaped;
+
+    % sort output
+    metrics.UmeanResultantSquaredLengthNorm = UmeanResultantSquaredLengthNorm;
 end
-metric_reshaped = reshape(metric,1,nDims(2:end));  % reshape into original size, except the row dimension is squeezed
-metrics.dPAC = metric_reshaped;
-% ---
-
-
-% --- PPC --- temporary just to check that my code above works
-Z = exp(1i * theta);
-% Sum across trials: [freq × time × 1 × chan]
-sumZ = sum(Z, 1);
-% Squared magnitude of the vector sum
-sqMag = abs(sumZ).^2;
-% Apply PPC formula
-numer = sqMag - nSamples;
-denominator = nSamples * (nSamples - 1);
-% Result: [freq × time × 1 × chan] → squeeze to [freq×time×chan]
-PPC = squeeze(numer ./ denominator);
-%----
 
 
 
-%% sort output
 
-metrics.meanResultantLength             = meanResultantLength;
-metrics.meanResultantLengthNorm         = meanResultantLengthNorm;
-metrics.meanResultantAngle              = meanResultantAngle;
-metrics.UmeanResultantSquaredLength     = UmeanResultantSquaredLength;
-metrics.UmeanResultantSquaredLengthNorm = UmeanResultantSquaredLengthNorm;
-
-
-disp('values are:')
-disp(metrics)
+%disp('values are:')
+%disp(metrics)
 % disp(meanResultantLength)
 % disp(meanResultantLengthNorm)
 % disp(meanResultantAngle)
