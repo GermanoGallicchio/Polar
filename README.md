@@ -52,23 +52,31 @@ upcoming...
 
 ## How to...
 
-### ...compute Inter-Trial Phase Clustering (aka, PLV)
+### ...compute Inter-Trial Phase Clustering (aka, PLV) or Pairwise Phase Consistency
+
 theta contains the phases of signal A
+
 rho contains the magnitudes of signal A ... we don't care about it
 ```matlab
 po_meanResultant(theta, ones(size(theta)))
 ```
+ask for "meanResultantLength" for ITPC and "UmeanResultantSquaredLength" for PPC
 
 ### ...compute Phase Amplitude Coupling
+
 theta contains the phases of signal A
+
 rho contains the magnitudes of signal B
-we just need the (normalized in you prefer) mean resultant length of rho exp(1i*theta)
+
+we just need the (normalized, if you prefer) mean resultant length of rho exp(1i*theta)
 ```matlab
 po_meanResultant(theta, rho)
 ```
 
 ### ...compute debiased Phase Amplitude Coupling
+
 theta contains the phases of signal A
+
 rho contains the magnitudes of signal B
 ```matlab
 [theta_demeaned, rho_demeaned] = po_demean(theta,ones(size(theta)));
