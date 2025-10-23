@@ -80,7 +80,10 @@ switch num2str(theta_rho)
 
     otherwise  % simulate both theta and rho
         if strcmp(num2str(simulationParams.theta_rho),num2str([1 1]))  % simulate both theta and rho
-            warning('simulate theta and rho one at the time with same or different distributional parameters')
+            warning(['if you want to simulate both theta and rho at once,' ...
+                ' do it in two steps' ...
+                ' 1) simulate theta with its parameters' ...
+                ' 2) simulate rho with its parameters, but also use "simulationParams.theta = theta" to inherit the simulated theta'])
         end
         error('po_cfg.simulationParams.theta_rho must be either [0 1] or [1 0]')
 end
