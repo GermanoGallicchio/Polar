@@ -27,8 +27,6 @@ function metrics = po_meanResultant(po_cfg, theta, rho)
 % AUTHOR:
 %   Germano Gallicchio (germano.gallicchio@gmail.com)
 
-%% sort input
-
 %% sanity checks
 
 % theta and rho are same size
@@ -74,16 +72,32 @@ complVec_matrix = reshape(complVec, nRows,nCols);
 
 %% implementation
 
-% meanResultantLength
+% % meanResultantLength ---- OLD, NON VECTORIZED
+% if any(strcmp('meanResultantLength',metricsRequested))
+%     metric = nan(1,nCols);
+%     for colIdx = 1:nCols
+%         c = complVec_matrix(:,colIdx);
+%         metric(1,colIdx) = abs(sum(c,1)) / nSamples;
+%     end
+%     metric_reshaped = reshape(metric,[ 1 nDims(2:end)]);  % reshape into original size, except the row dimension is squeezed
+%     meanResultantLength = metric_reshaped;
+% 
+%     % sort output
+%     metrics.meanResultantLength             = meanResultantLength;
+% end
+
+
+
+% meanResultantLength ---- vectorized, working on it
 if any(strcmp('meanResultantLength',metricsRequested))
-    metric = nan(1,nCols);
-    for colIdx = 1:nCols
-        c = complVec_matrix(:,colIdx);
-        metric(1,colIdx) = abs(sum(c,1)) / nSamples;
-    end
+    
+    % compute from vectorized complex-valued ND array
+    metric = abs(sum(complVec_matrix,1))/nSamples;
+
+    % reshape to original size
     metric_reshaped = reshape(metric,[ 1 nDims(2:end)]);  % reshape into original size, except the row dimension is squeezed
     meanResultantLength = metric_reshaped;
-
+    
     % sort output
     metrics.meanResultantLength             = meanResultantLength;
 end
@@ -91,17 +105,16 @@ end
 
 % meanResultantLengthNorm
 if any(strcmp('meanResultantLengthNorm',metricsRequested))
-    metric = nan(1,nCols);
-    for colIdx = 1:nCols
-        c = complVec_matrix(:,colIdx);
-        numerator = abs(sum(c,1));
-        denominator = sum(abs(c),1);
-        if denominator~=0
-            metric(1,colIdx) = numerator ./ denominator;
-        else
-            metric(1,colIdx) = 0;
-        end
-    end
+
+    % compute from vectorized complex-valued ND array
+    numerator = abs(sum(complVec_matrix,1));
+    denominator = sum(abs(complVec_matrix),1);
+    metric = numerator ./ denominator;
+
+    % deal with possible (but unlikely) denominator zeros by setting the metric to 0
+    metric(isinf(metric)) = 0; 
+
+    % reshape to original size
     metric_reshaped = reshape(metric,[ 1 nDims(2:end)]);  % reshape into original size, except the row dimension is squeezed
     meanResultantLengthNorm = metric_reshaped;
 
@@ -112,11 +125,11 @@ end
 
 % meanResultantAngle
 if any(strcmp('meanResultantAngle',metricsRequested))
-    metric = nan(1,nCols);
-    for colIdx = 1:nCols
-        c = complVec_matrix(:,colIdx);
-        metric(1,colIdx) = angle(sum(c,1));
-    end
+
+    % compute from vectorized complex-valued ND array
+    metric = angle(sum(complVec_matrix,1));
+
+    % reshape to original size
     metric_reshaped = reshape(metric,[ 1 nDims(2:end)]);  % reshape into original size, except the row dimension is squeezed
     meanResultantAngle = metric_reshaped;
 
@@ -128,6 +141,8 @@ end
 % UmeanResultantSquaredLength 
 % U-statistic estimator of the squared length of mean resultant
 if any(strcmp('UmeanResultantSquaredLength',metricsRequested))
+
+    % compute from vectorized complex-valued ND array, using for loop
     metric = nan(1,nCols);
     for colIdx = 1:nCols
         c = complVec_matrix(:,colIdx);
@@ -135,7 +150,14 @@ if any(strcmp('UmeanResultantSquaredLength',metricsRequested))
         diag_sum  = sum(diag(c*c')); % sum only the diagonal
         metric(1,colIdx) = (total_sum - diag_sum) / (nSamples*(nSamples-1));
     end
-    metric = real(metric);    % due to computer rounding precision, there can be a tiny residual imaginary part that should not be there and that must be ignored
+    
+    % compute from vectorized complex-valued ND array
+    % TO DO: compute metric without for loop
+    
+    % due to computer rounding precision, there can be a tiny residual imaginary part that should not be there and that must be ignored
+    metric = real(metric);    
+
+    % reshape to original size
     metric_reshaped = reshape(metric,[ 1 nDims(2:end)]);  % reshape into original size, except the row dimension is squeezed
     UmeanResultantSquaredLength = metric_reshaped;
     
@@ -146,6 +168,8 @@ end
 % UmeanResultantSquaredLengthNorm
 % normalized U-statistic estimator of the squared length of mean resultant
 if any(strcmp('UmeanResultantSquaredLengthNorm',metricsRequested))
+
+    % compute from vectorized complex-valued ND array, using for loop
     metric = nan(1,nCols);
     for colIdx = 1:nCols
         c = complVec_matrix(:,colIdx);
@@ -164,7 +188,14 @@ if any(strcmp('UmeanResultantSquaredLengthNorm',metricsRequested))
             metric(1,colIdx) = 0;
         end
     end
-    metric = real(metric);    % due to computer rounding precision, there can be a tiny residual imaginary part that should not be there and that must be ignored
+
+    % due to computer rounding precision, there can be a tiny residual imaginary part that should not be there and that must be ignored
+    metric = real(metric);    
+
+    % compute from vectorized complex-valued ND array
+    % TO DO: compute metric without for loop
+
+    % reshape to original size
     metric_reshaped = reshape(metric,[ 1 nDims(2:end)]);  % reshape into original size, except the row dimension is squeezed
     UmeanResultantSquaredLengthNorm = metric_reshaped;
 
