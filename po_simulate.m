@@ -21,8 +21,6 @@ nModes = length(mu);
 %% random seed
 
 
-
-
 fieldLbl = fieldnames(simulationParams);
 if ~any(strcmp(fieldLbl,'randomSeed'))
     randomSeed = 42;
