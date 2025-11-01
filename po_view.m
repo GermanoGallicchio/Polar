@@ -1,4 +1,4 @@
-function po_view(theta, rho, po_cfg, viewParams)
+function po_view(theta, rho, viewParams)
 
 % DESCRIPTION:
 %
@@ -24,6 +24,10 @@ if ~any(strcmp(fieldLbl,varLbl))
     viewParams.(varLbl) = pi/4;
 end
 
+varLbl = 'type';
+if ~any(strcmp(fieldLbl,varLbl))
+    viewParams.(varLbl) = 'line';
+end
 
 %% shortcuts
 
