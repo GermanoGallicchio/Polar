@@ -1,9 +1,9 @@
-function [theta, r] = po_vonMises(kappa,mu,n)
+function [theta, r] = po_vonMisesSample(kappa,mu,n)
 
 % DESCRIPTION: sample from a von Mises distribution on [-pi, pi)
 %              Handles both single and mixture distributions
 %
-%       [theta, r] = po_vonMises(kappa,mu,n)
+%       [theta, r] = po_vonMisesSample(kappa,mu,n)
 %
 % INPUT:
 %       kappa   - concentration parameter kappa >= 0 (scalar or vector for mixture)
@@ -53,9 +53,9 @@ end
 
 %% implementation
 
-% Handle mixture case: if multiple distributions, call po_vonMisesMix
+% Handle mixture case: if multiple distributions, call po_vonMisesMixSample
 if numel(mu) > 1
-    [theta, r] = po_vonMisesMix(kappa, mu, n);
+    [theta, r] = po_vonMisesMixSample(kappa, mu, n);
     return
 end
 
