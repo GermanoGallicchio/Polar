@@ -299,32 +299,6 @@ rng(randomSeed)
 
 if      po_cfg.sampling.theta  &&  ~po_cfg.sampling.r   % simulate theta
 
-    % -- old section ---
-    % drawing theta samples (step 3) from a probability mass
-    % distribution obtained from an empirical dendisty distribution
-    % (step 2), which is obtained from a theoretical distribution (sum
-    % of von Mises).
-    % % step 1. create an angular grid in (-pi, pi]
-    % thetaCoverage = 10000; % hard-coded but not important. it needs to provide a good coverage of the angular space
-    % thetaLim = [-pi, pi];  % currently: [-pi, pi]
-    % theta = linspace(thetaLim(1), thetaLim(2), thetaCoverage+1);
-    % theta(1) = [];         % now: (-pi, pi] 
-    % 
-    % % step 2. empirical density distribution
-    % kappa = theta_concentration;
-    % mu    = theta_direction;
-    % vmDensity = po_vonMisesDensity(kappa,mu,theta);
-    % 
-    % % step 3. probability mass distribution
-    % vmMass = vmDensity * (theta(2) - theta(1)); % approximate area per bin
-    % vmMass = vmMass / sum(vmMass);              % make sure it sums to 1
-    % 
-    % % step 4. draw theta samples from probability mass distribution
-    % sampleIdx = randsample(length(theta), nSamples, true, vmMass);
-    % samples = theta(sampleIdx);
-    % -- --
-
-
     switch familyDistr
         case 'vonMises'
             mu    = po_cfg.sampling.distribution.theta.mu;
