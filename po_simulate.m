@@ -12,18 +12,46 @@ function [theta, r] = po_simulate(po_cfg)
 %      (for phase-amplitude coupling simulations with coupled distributions)
 %
 %   Stochasticity:
-%   - Simulations of theta are stochastic when sampled from theoretical distributions
-%     (modes 1 and 3) due to random sampling.
-%   - Simulations of r are deterministic (density evaluations) unless multiplicative
-%     Gaussian noise is added via the controllable parameter po_cfg.sampling.r_noise.
+%   - case 1: theta is sampled stochastically from the theoretical distribution
+%   - case 2: r is deterministic (density evaluations) for uniform theta, unless noise is added
+%   - case 3: theta is sampled stochastically from its distribution like in case 1, r is deterministically like in case 2, unless noise is added
 %
 % INPUT:        
-%   po_cfg
+%   po_cfg - Configuration structure with the following fields:
 %
+%     po_cfg.sampling.theta  - [logical] true to sample theta from distribution (modes 1,3)
+%                                        false for uniform theta (mode 2)
+%     po_cfg.sampling.r      - [logical] true to compute r from density (modes 2,3)
+%                                        false to set r = 1 (mode 1)
 %
+%     Mode selection:
+%       Mode 1: po_cfg.sampling.theta = true,  po_cfg.sampling.r = false
+%       Mode 2: po_cfg.sampling.theta = false, po_cfg.sampling.r = true
+%       Mode 3: po_cfg.sampling.theta = true,  po_cfg.sampling.r = true
 %
-% OPTIONAL INPUT:
-%   none
+%     po_cfg.sampling.nSamples            - [numeric] number of samples to generate
+%     po_cfg.sampling.distribution.family - [string] 'vonMises' or 'wrappedCauchy'
+%     
+%     For vonMises distributions:
+%       po_cfg.sampling.distribution.theta.mu    - [numeric] mean direction(s) for theta
+%       po_cfg.sampling.distribution.theta.kappa - [numeric] concentration parameter(s) 
+%                                                   for theta (kappa >= 0)
+%       po_cfg.sampling.distribution.r.mu        - [numeric] mean direction(s) for r density
+%       po_cfg.sampling.distribution.r.kappa     - [numeric] concentration parameter(s) 
+%                                                   for r density (kappa >= 0)
+%     
+%     For wrappedCauchy distributions:
+%       po_cfg.sampling.distribution.theta.mu    - [numeric] mean direction(s) for theta
+%       po_cfg.sampling.distribution.theta.rho   - [numeric] concentration parameter(s) 
+%                                                   for theta (0 <= rho < 1)
+%       po_cfg.sampling.distribution.r.mu        - [numeric] mean direction(s) for r density
+%       po_cfg.sampling.distribution.r.rho       - [numeric] concentration parameter(s) 
+%                                                   for r density (0 <= rho < 1)
+%     
+%     po_cfg.sampling.r_noise             - [numeric] (optional, default=0) multiplicative 
+%                                            Gaussian noise level for r (std of noise)
+%     po_cfg.sampling.randomSeed          - [numeric] (optional, default=42) random seed
+%     po_cfg.verbose                      - [logical] (optional, default=true) display warnings
 %
 %
 % OUTPUT:
@@ -41,14 +69,14 @@ if toggle
 
 % decide sampling parameters
 po_cfg.sampling.nSamples = 400;
-po_cfg.sampling.distribution.family = 'vonMises';  % 'vonMises' | 'wrappedCauchy'
+po_cfg.sampling.distribution.family = 'wrappedCauchy';  % 'vonMises' | 'wrappedCauchy'
 po_cfg.sampling.theta = true;   % choose if sampling theta
 po_cfg.sampling.r     = true;  % choose if sampling r
-po_cfg.sampling.distribution.theta.kappa  = [1]; % concentration parameter for von Mises
-%po_cfg.sampling.distribution.theta.rho    = 0.5; % concentration parameter for wrapped Cauchy
+%po_cfg.sampling.distribution.theta.kappa  = [1]; % concentration parameter for von Mises
+po_cfg.sampling.distribution.theta.rho    = 0.8; % concentration parameter for wrapped Cauchy
 po_cfg.sampling.distribution.theta.mu     = [pi/2]; % direction parameter for either von Mises or wrapped Cauchy
-po_cfg.sampling.distribution.r.kappa  = 3; % concentration parameter for von Mises
-%po_cfg.sampling.distribution.r.rho    = 0.5; % concentration parameter for wrapped Cauchy
+%po_cfg.sampling.distribution.r.kappa  = 3; % concentration parameter for von Mises
+po_cfg.sampling.distribution.r.rho    = 0.5; % concentration parameter for wrapped Cauchy
 po_cfg.sampling.distribution.r.mu     = pi; % direction parameter for either von Mises or wrapped Cauchy
 
 
@@ -310,8 +338,8 @@ if      po_cfg.sampling.theta  &&  ~po_cfg.sampling.r   % simulate theta
             mu = po_cfg.sampling.distribution.theta.mu;
             rho = po_cfg.sampling.distribution.theta.rho;
             n = po_cfg.sampling.nSamples;
-            % po_wrappedCauchy handles both single and mixture distributions internally
-            [theta, ~] = po_wrappedCauchy(rho, mu, n);
+            % po_wrappedCauchySample handles both single and mixture distributions internally
+            [theta, ~] = po_wrappedCauchySample(rho, mu, n);
             r = ones(n, 1);  % unit magnitude for Case 1
     end
 
@@ -339,7 +367,18 @@ elseif ~po_cfg.sampling.theta  &&   po_cfg.sampling.r   % simulate r, for unifor
             end
             
         case 'wrappedCauchy'
-            error('not coded yet')
+            mu    = po_cfg.sampling.distribution.r.mu;
+            rho   = po_cfg.sampling.distribution.r.rho;
+            n     = po_cfg.sampling.nSamples;
+            theta = (-pi) + (0:(n-1))' * (2*pi / n);
+            [~, r] = po_wrappedCauchyDensity(rho, mu, theta);
+            
+            % Apply multiplicative Gaussian noise to r to make the process stochastic
+            % (adds trial-to-trial variability, simulating realistic noisy data)
+            if po_cfg.sampling.r_noise > 0
+                r = r .* (1 + po_cfg.sampling.r_noise * randn(size(r)));
+                r = max(r, 0);  % ensure non-negative
+            end
     end
 
 
@@ -366,7 +405,23 @@ elseif  po_cfg.sampling.theta  &&   po_cfg.sampling.r   % simulate both theta an
             end
             
         case 'wrappedCauchy'
-            error('not coded yet')
+            % Sample theta from its distribution
+            mu_theta  = po_cfg.sampling.distribution.theta.mu;
+            rho_theta = po_cfg.sampling.distribution.theta.rho;
+            n         = po_cfg.sampling.nSamples;
+            [theta, ~] = po_wrappedCauchySample(rho_theta, mu_theta, n);
+            
+            % Evaluate r density at the sampled theta values
+            mu_r  = po_cfg.sampling.distribution.r.mu;
+            rho_r = po_cfg.sampling.distribution.r.rho;
+            [~, r] = po_wrappedCauchyDensity(rho_r, mu_r, theta);
+            
+            % Apply multiplicative Gaussian noise to r to make the process stochastic
+            % (adds trial-to-trial variability, simulating realistic noisy data)
+            if po_cfg.sampling.r_noise > 0
+                r = r .* (1 + po_cfg.sampling.r_noise * randn(size(r)));
+                r = max(r, 0);  % ensure non-negative
+            end
     end
     
     % ensure vectors are column
@@ -375,78 +430,3 @@ elseif  po_cfg.sampling.theta  &&   po_cfg.sampling.r   % simulate both theta an
 
 
 end
-
-% temporary section
-figure(101)
-viewParams=struct();
-po_view(theta, r, viewParams)
-
-
-%% older section
-switch num2str(theta_rho)
-    case num2str([0 1])  % simulate rho with uniform or given theta
-        % build an empirical density distribution by drawing from a
-        % theoretical distribution (sum of von Mises).
-    
-        fieldLbl = fieldnames(po_cfg);
-        if ~any(strcmp(fieldLbl,'theta'))
-            thetaLim = [-pi, pi];  % create a range of phase values in (-pi, pi]
-            theta = linspace(thetaLim(1), thetaLim(2), nSamples+1);
-            theta(1) = [];
-        else
-            theta = po_cfg.theta;
-        end
-
-        % empirical density distribution 
-        r = po_vonMisesDensity(kappa,mu,theta);
-
-        % ensure vectors are column
-        theta = theta(:);
-        r = r(:);
-
-    case num2str([1 0])  % simulate theta, with unit rho
-        % drawing theta samples (step 3) from a probability mass
-        % distribution obtained from an empirical dendisty distribution
-        % (step 2), which is obtained from a theoretical distribution (sum
-        % of von Mises).
-
-        % step 1. empirical density distribution 
-        thetaLim = [-pi, pi];  % create a range of phase values in (-pi, pi]
-        theta = linspace(thetaLim(1), thetaLim(2), 10000+1);
-        theta(1) = [];
-        r = po_vonMisesDensity(kappa,mu,theta);
-        % step 2. probability mass distribution
-        vmMass = r * (theta(2) - theta(1)); % approximate area per bin
-        vmMass = vmMass / sum(vmMass);              % make sure it sums to 1
-        % step 3. draw theta samples from probability mass distribution
-        sampleIdx = randsample(length(theta), nSamples, true, vmMass);
-        samples = theta(sampleIdx);
-
-        % ensure vectors are column
-        theta = samples(:);
-        r = ones(size(theta));
-
-    
-
-    otherwise  % simulate both theta and rho
-        if strcmp(num2str(po_cfg.theta_rho),num2str([1 1]))  % simulate both theta and rho
-            warning(['if you want to simulate both theta and rho at once,' ...
-                ' do it in two steps' ...
-                ' 1) simulate theta with its parameters' ...
-                ' 2) simulate rho with its parameters, but also use "simulationParams.theta = theta" to inherit the simulated theta'])
-        end
-        error('po_cfg.simulationParams.theta_rho must be either [0 1] or [1 0]')
-end
-
-
-
-
-
-
-
-
-
-
-
-
-
