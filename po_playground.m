@@ -66,8 +66,8 @@ po_cfg.simulation.distribution.theta.rho = [0.99 0.8];
 
 % view simulation
 figure(101); clf
-viewParams = struct();
-po_view(theta,r,viewParams)
+po_cfg.viewParams.type = 'line';
+po_view(theta,r,po_cfg)
 
 %% simulate values
 % mode 2: simulate r with uniform theta
@@ -77,7 +77,7 @@ clear po_cfg
 po_cfg.simulation.randomSeed = 42;
 po_cfg.simulation.theta = false;
 po_cfg.simulation.r     = true;
-po_cfg.simulation.r_noise = 0.2;
+po_cfg.simulation.r_noise = 0.5;
 po_cfg.simulation.nSamples = 300;
 po_cfg.simulation.distribution.family = 'wrappedCauchy';
 po_cfg.simulation.distribution.r.mu    = [pi/3 pi];
@@ -89,8 +89,8 @@ po_cfg.simulation.distribution.r.rho = [0.75 0.65];
 
 % view simulation
 figure(101); clf
-viewParams = struct();
-po_view(theta,r,viewParams)
+po_cfg.viewParams.type = 'line';
+po_view(theta,r,po_cfg)
 
 
 %% simulate values
@@ -101,13 +101,13 @@ clear po_cfg
 po_cfg.simulation.randomSeed = 42;
 po_cfg.simulation.theta = true;
 po_cfg.simulation.r     = true;
-po_cfg.simulation.r_noise = 0.2;
+po_cfg.simulation.r_noise = 0.1;
 po_cfg.simulation.nSamples = 500;
 po_cfg.simulation.distribution.family = 'wrappedCauchy';
-po_cfg.simulation.distribution.theta.mu    = [0];
-po_cfg.simulation.distribution.theta.rho = [0.9];
+po_cfg.simulation.distribution.theta.mu    = [pi/2];
+po_cfg.simulation.distribution.theta.rho = [0.5];
 po_cfg.simulation.distribution.r.mu    = [0];
-po_cfg.simulation.distribution.r.rho = [0.5];
+po_cfg.simulation.distribution.r.rho = [0.3];
 
 
 % simulate data
@@ -115,5 +115,5 @@ po_cfg.simulation.distribution.r.rho = [0.5];
 
 % view simulation
 figure(101); clf
-viewParams = struct();
-po_view(theta,r,viewParams)
+po_cfg.viewParams.type = 'line';
+po_view(theta,r,po_cfg)
