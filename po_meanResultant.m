@@ -1,10 +1,9 @@
-function metrics = po_meanResultant(po_cfg, theta, rho)
-
-% Computes mean resultant metrics
-% 
+function metrics = po_meanResultant(theta, r, po_cfg)
 % SYNTAX:
+%       metrics = po_meanResultant(theta, r, po_cfg)
 %
 % DESCRIPTION:
+%   Computes various mean resultant metrics.
 %   This function calculates the mean resultant vector from a set of phase
 %   angles (and optionally, magnitudes) in circular data. The resultant
 %   vector represents the mean direction and magnitude of the data points.
@@ -16,7 +15,7 @@ function metrics = po_meanResultant(po_cfg, theta, rho)
 %               
 %
 % OPTIONAL INPUT:
-%   rho   - A column vector (N-by-1) of magnitudes (any unit). 
+%   r   - A column vector (N-by-1) of magnitudes (any unit). 
 %                  Must be non-negative. If no input, it assumes as default
 %                  a vector of ones (equal weights for all angles).
 %
@@ -27,22 +26,35 @@ function metrics = po_meanResultant(po_cfg, theta, rho)
 % AUTHOR:
 %   Germano Gallicchio (germano.gallicchio@gmail.com)
 
-%% sanity checks
+%% input checks
 
-% theta and rho are same size
-if size(theta)~=size(rho)
-    error('theta and rho must be of the same size')
+% theta and r are same size
+if size(theta)~=size(r)
+    error('theta and r must be of the same size')
 end
 
 % because these metrics work on the rows (1st dim) a row vector is likely a user mistake
 if length(size(theta))==2
     if size(theta,1)==1  &  size(theta,2)>1
-        warning('metrics are computed on the first dimension. you might want to transpose theta and rho');
+        warning('metrics are computed along the first dimension. you might want to transpose theta and r');
     end
 end
 
 
-% requests are possible
+
+
+% sanity check: po_cfg.metrics field exists
+if ~isfield(po_cfg,'metrics')
+    error('po_cfg structure needs to have a "metrics" field. see po_documentation() for details')
+end
+
+% sanity check: po_cfg.metrics.requests field exists
+if ~isfield(po_cfg.metrics,'requests')
+    error('po_cfg.metrics structure needs to have a "requests" field. see po_documentation() for details')
+end
+
+
+% metrics.requests are among the allowed ones
 metricsList = [
     "meanResultantLength" 
     "meanResultantLengthNorm" 
@@ -50,19 +62,21 @@ metricsList = [
     "UmeanResultantSquaredLength" 
     "UmeanResultantSquaredLengthNorm"
     ];
-
-metricsRequested = metricsList(ismember(metricsList,po_cfg.requests));
-if isempty(metricsRequested)
+if ~ismember(po_cfg.metrics.requests, metricsList)
     disp(metricsList)
-    error('po_cfg.requests should be a string vector of at least one of the above')
+    error('po_cfg.metrics.requests needs to be one of the families above. see po_documentation() for details')
 end
+
+%% shortcuts
+
+metricsRequested = po_cfg.metrics.requests;
 
 %% get data
 
 nSamples = size(theta,1);
 
-% assemble theta and rho to make complex numbers
-complVec = rho .* exp(1i.*theta);
+% assemble theta and r to make complex numbers
+complVec = r .* exp(1i.*theta);
 
 % matrixify complex numbers (so that all computations will happen across rows)
 nDims = size(complVec);
