@@ -351,7 +351,7 @@ elseif ~po_cfg.simulation.theta  &&   po_cfg.simulation.r   % simulate r, for un
             % Apply multiplicative Gaussian noise to r to make the process stochastic
             % (adds trial-to-trial variability, simulating realistic noisy data)
             if po_cfg.simulation.r_noise > 0
-% TO DO: should i use random seed here?                
+
                 r = r .* (1 + po_cfg.simulation.r_noise * randn(size(r)));
                 r = max(r, 0);  % ensure non-negative
             end
@@ -366,7 +366,7 @@ elseif ~po_cfg.simulation.theta  &&   po_cfg.simulation.r   % simulate r, for un
             % Apply multiplicative Gaussian noise to r to make the process stochastic
             % (adds trial-to-trial variability, simulating realistic noisy data)
             if po_cfg.simulation.r_noise > 0
-% TO DO: should i use random seed here?
+
                 r = r .* (1 + po_cfg.simulation.r_noise * randn(size(r)));
                 r = max(r, 0);  % ensure non-negative
             end
