@@ -1,6 +1,6 @@
-function po_view(theta, r, viewParams)
+function po_view(theta, r, po_cfg)
 % SYNTAX
-%       po_view(theta, r, viewParams)
+%       po_view(theta, r, po_Cfg)
 %
 % DESCRIPTION: 
 %       Visualize polar data in angular and linear coordinates
@@ -8,6 +8,7 @@ function po_view(theta, r, viewParams)
 % INPUT:        
 %       theta       - angles (radians)
 %       r           - amplitudes
+%       po_cfg structure with field "viewParams"
 %       viewParams  - structure with optional fields
 %                       .thetaLim   (default: [-pi pi])
 %                       .thetaStep  (default: pi/4)
@@ -16,23 +17,29 @@ function po_view(theta, r, viewParams)
 % AUTHOR:
 %   Germano Gallicchio (germano.gallicchio@gmail.com)
 
-%% set defaults
+%% input check and defaults
 
-if ~isfield(viewParams,'thetaLim')
-    viewParams.thetaLim = [-pi pi];
+% sanity check: po_cfg.viewParams field exists
+if ~isfield(po_cfg,'viewParams')
+    error('po_cfg structure needs to have a "viewParams" field. see po_documentation() for details')
 end
-if ~isfield(viewParams,'thetaStep')
-    viewParams.thetaStep = pi/4;
+
+
+if ~isfield(po_cfg.viewParams,'thetaLim')
+    po_cfg.viewParams.thetaLim = [-pi pi];
 end
-if ~isfield(viewParams,'type')
-    viewParams.type = 'line';
+if ~isfield(po_cfg.viewParams,'thetaStep')
+    po_cfg.viewParams.thetaStep = pi/4;
+end
+if ~isfield(po_cfg.viewParams,'type')
+    po_cfg.viewParams.type = 'line';
 end
 
 %% shortcuts
 
 nSamples  = numel(theta);
-thetaLim  = viewParams.thetaLim;
-thetaStep = viewParams.thetaStep;
+thetaLim  = po_cfg.viewParams.thetaLim;
+thetaStep = po_cfg.viewParams.thetaStep;
 
 
 %% general figure settings
@@ -48,7 +55,7 @@ nexttile(tld,1,[1 1])
 c = lines(1); % base color
 
 
-switch viewParams.type
+switch po_cfg.viewParams.type
     case 'point'
         pp = polarplot(theta,r,'.','Color',c);
         pp.Parent.ThetaAxisUnits = "radians";
@@ -80,7 +87,7 @@ end
 
 nexttile(tld,2,[1 1])
 
-switch viewParams.type
+switch po_cfg.viewParams.type
     case 'point'
         
         lp = plot(theta, r, '.', 'Color', c);
@@ -92,8 +99,6 @@ switch viewParams.type
             thetaTicks, 'UniformOutput', false);
         ax.XAxis.TickLabelInterpreter = 'tex';
         ax.YAxis.Label.String = 'Density';
-        ax.YAxis.Limits = unique([0 prctile(r(:),[0 100])]);
-        ax.YAxis.TickValues = unique([0 prctile(r(:),[0 100])]);
 
         ax.YAxis.Limits = unique([0 max(r(:))]) + [0 1]*0.1;
         ax.YAxis.TickValues = unique([0 max(r(:))]);
