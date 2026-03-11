@@ -1,6 +1,6 @@
-function [theta_decoupled, r_decoupled, offset_pnt ] = po_decouple(theta, r, po_cfg)
+function [theta_decoupled, r_decoupled, offset_pnt ] = fa_decouple(theta, r, fa_cfg)
 % SYNTAX:
-%   [theta_decoupled, r_decoupled, offset_pnt] = po_decouple(theta, r, po_cfg)
+%   [theta_decoupled, r_decoupled, offset_pnt] = fa_decouple(theta, r, fa_cfg)
 %
 % DESCRIPTION:
 %   Decouple theta (angles) and r (magnitudes) by circularly shifting r relative to theta
@@ -11,7 +11,7 @@ function [theta_decoupled, r_decoupled, offset_pnt ] = po_decouple(theta, r, po_
 % INPUT:
 %   theta   - numeric array of angles (radians). Samples are along the first dimension
 %   r       - numeric array of magnitudes, same size as theta.
-%   po_cfg  - struct with field 'decoupling':
+%   fa_cfg  - struct with field 'decoupling':
 %               .offsetRange   [1x2 numeric] percentage range of possible offsets
 %                               relative to the length of first dimension. For example, [20 80]
 %                               means choose a random offset (by sampling from a uniform distribution) between
@@ -35,54 +35,54 @@ function [theta_decoupled, r_decoupled, offset_pnt ] = po_decouple(theta, r, po_
 
 % theta and r are numeric arrays of the same size
 if ~isnumeric(theta) || ~isnumeric(r)
-    error('theta and r must be numeric arrays. See po_documentation() for details');
+    error('theta and r must be numeric arrays. See fa_documentation() for details');
 end
 if ~isequal(size(theta), size(r))
-    error('theta and r must have the same size. See po_documentation() for details');
+    error('theta and r must have the same size. See fa_documentation() for details');
 end
 
 % theta and r have at least 2 values along the first dimension
 if size(theta,1) < 2
-    error('theta and r must have at least 2 values (i.e., samples) along the first dimension. See po_documentation() for details');
+    error('theta and r must have at least 2 values (i.e., samples) along the first dimension. See fa_documentation() for details');
 end
 
-% po_cfg.decoupling field exists
-if ~isfield(po_cfg,'decoupling')
-    error('po_cfg must contain a decoupling field. See po_documentation() for details');
+% fa_cfg.decoupling field exists
+if ~isfield(fa_cfg,'decoupling')
+    error('fa_cfg must contain a decoupling field. See fa_documentation() for details');
 end
 
-% po_cfg.decoupling.offsetRange field exists, otherwise set default
-if ~isfield(po_cfg.decoupling, 'offsetRange')
-    po_cfg.decoupling.offsetRange = [20 80]; % percentage
-    warning(['po_cfg.decoupling.offsetRange was not defined. Setting to ' num2str(po_cfg.decoupling.offsetRange) ' (percentage of the sample length). Specify explicitly to avoid this warning.'])
+% fa_cfg.decoupling.offsetRange field exists, otherwise set default
+if ~isfield(fa_cfg.decoupling, 'offsetRange')
+    fa_cfg.decoupling.offsetRange = [20 80]; % percentage
+    warning(['fa_cfg.decoupling.offsetRange was not defined. Setting to ' num2str(fa_cfg.decoupling.offsetRange) ' (percentage of the sample length). Specify explicitly to avoid this warning.'])
 end
 
-% po_cfg.decoupling.offsetRange must be a 1x2 numeric vector
-if ~isnumeric(po_cfg.decoupling.offsetRange) || numel(po_cfg.decoupling.offsetRange)~=2
-    error('po_cfg.decoupling.offsetRange must be a 1x2 numeric vector of percentages [min max]. See po_documentation() for details');
+% fa_cfg.decoupling.offsetRange must be a 1x2 numeric vector
+if ~isnumeric(fa_cfg.decoupling.offsetRange) || numel(fa_cfg.decoupling.offsetRange)~=2
+    error('fa_cfg.decoupling.offsetRange must be a 1x2 numeric vector of percentages [min max]. See fa_documentation() for details');
 end
 
 % offset range must be sorted [min max]
-if ~issorted(po_cfg.decoupling.offsetRange)
-    error('po_cfg.decoupling.offsetRange must be sorted in ascending order [min max]. See po_documentation() for details');
+if ~issorted(fa_cfg.decoupling.offsetRange)
+    error('fa_cfg.decoupling.offsetRange must be sorted in ascending order [min max]. See fa_documentation() for details');
 end
 
 % offset range must be within [0,100]
-if any(po_cfg.decoupling.offsetRange < 0) || any(po_cfg.decoupling.offsetRange > 100)
-    error('po_cfg.decoupling.offsetRange values must be between 0 and 100 (percentages). See po_documentation() for details');
+if any(fa_cfg.decoupling.offsetRange < 0) || any(fa_cfg.decoupling.offsetRange > 100)
+    error('fa_cfg.decoupling.offsetRange values must be between 0 and 100 (percentages). See fa_documentation() for details');
 end
 
 % if randomSeed not set by user, set it to 42
 % (randomSeed used to make stochastic simulations replicable)
-if ~isfield(po_cfg.decoupling,'randomSeed')
-    po_cfg.decoupling.randomSeed = 42;
-    warning(['po_cfg.decoupling.randomSeed not defined by user. i am setting it to ' num2str(po_cfg.decoupling.randomSeed) ' , but you can specify it explicitly to avoid this warning. This is not a bug. See po_documentation() for details'])
+if ~isfield(fa_cfg.decoupling,'randomSeed')
+    fa_cfg.decoupling.randomSeed = 42;
+    warning(['fa_cfg.decoupling.randomSeed not defined by user. i am setting it to ' num2str(fa_cfg.decoupling.randomSeed) ' , but you can specify it explicitly to avoid this warning. This is not a bug. See fa_documentation() for details'])
 end
 
 % if perColumn not set by user, default to true (column-wise shift--each column gets an independent shift)
-if ~isfield(po_cfg.decoupling,'perColumn')
-    po_cfg.decoupling.perColumn = true;
-    warning(['po_cfg.decoupling.perColumn not defined by user. i am setting it to true , but you can specify it explicitly to avoid this warning. This is not a bug. See po_documentation() for details'])
+if ~isfield(fa_cfg.decoupling,'perColumn')
+    fa_cfg.decoupling.perColumn = true;
+    warning(['fa_cfg.decoupling.perColumn not defined by user. i am setting it to true , but you can specify it explicitly to avoid this warning. This is not a bug. See fa_documentation() for details'])
 end
 
 %% shortcuts
@@ -90,11 +90,11 @@ end
 nSamples = size(theta,1); % number of samples (from first dimension)
 nCols = size(theta,2);     % number of columns
 
-offsetRange_prc = po_cfg.decoupling.offsetRange;
+offsetRange_prc = fa_cfg.decoupling.offsetRange;
 
-randomSeed = po_cfg.decoupling.randomSeed;
+randomSeed = fa_cfg.decoupling.randomSeed;
 
-perColumn = po_cfg.decoupling.perColumn;
+perColumn = fa_cfg.decoupling.perColumn;
 
 %% implementation
 
