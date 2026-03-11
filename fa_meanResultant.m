@@ -1,6 +1,6 @@
-function metrics = po_meanResultant(theta, r, po_cfg)
+function metrics = fa_meanResultant(theta, r, fa_cfg)
 % SYNTAX:
-%       metrics = po_meanResultant(theta, r, po_cfg)
+%       metrics = fa_meanResultant(theta, r, fa_cfg)
 %
 % DESCRIPTION:
 %   Computes various mean resultant metrics.
@@ -43,14 +43,14 @@ end
 
 
 
-% sanity check: po_cfg.metrics field exists
-if ~isfield(po_cfg,'metrics')
-    error('po_cfg structure needs to have a "metrics" field. see po_documentation() for details')
+% sanity check: fa_cfg.metrics field exists
+if ~isfield(fa_cfg,'metrics')
+    error('fa_cfg structure needs to have a "metrics" field. see fa_documentation() for details')
 end
 
-% sanity check: po_cfg.metrics.requests field exists
-if ~isfield(po_cfg.metrics,'requests')
-    error('po_cfg.metrics structure needs to have a "requests" field. see po_documentation() for details')
+% sanity check: fa_cfg.metrics.requests field exists
+if ~isfield(fa_cfg.metrics,'requests')
+    error('fa_cfg.metrics structure needs to have a "requests" field. see fa_documentation() for details')
 end
 
 
@@ -62,21 +62,30 @@ metricsList = [
     "UmeanResultantSquaredLength" 
     "UmeanResultantSquaredLengthNorm"
     ];
-if ~ismember(po_cfg.metrics.requests, metricsList)
+if ~ismember(fa_cfg.metrics.requests, metricsList)
     disp(metricsList)
-    error('po_cfg.metrics.requests needs to be one of the families above. see po_documentation() for details')
+    error('fa_cfg.metrics.requests needs to be one of the families above. see fa_documentation() for details')
 end
 
 %% shortcuts
 
-metricsRequested = po_cfg.metrics.requests;
+metricsRequested = fa_cfg.metrics.requests;
 
 %% get data
 
 nSamples = size(theta,1);
 
+
+kFold = 1; % for upciming extension with k-folded angles
+angleLag = 2*pi/kFold; % angle lag for k-folded angles
+% k = 1 means normal angles
+% k = 2 means pi-lagged angles (i.e., angles folded at pi)
+% k = 3 means 2pi/3-lagged angles (i.e., angles folded at 2pi/3)    
+% k = 4 means pi/2-lagged angles (i.e., angles folded at pi/2)
+
+
 % assemble theta and r to make complex numbers
-complVec = r .* exp(1i.*theta);
+complVec = r .* exp(1i.*kFold*theta);
 
 % matrixify complex numbers (so that all computations will happen across rows)
 nDims = size(complVec);
