@@ -1,6 +1,6 @@
-function po_view(theta, r, po_cfg)
+function fa_view(theta, r, fa_cfg)
 % SYNTAX
-%       po_view(theta, r, po_Cfg)
+%       fa_view(theta, r, fa_Cfg)
 %
 % DESCRIPTION: 
 %       Visualize polar data in angular and linear coordinates
@@ -8,7 +8,7 @@ function po_view(theta, r, po_cfg)
 % INPUT:        
 %       theta       - angles (radians)
 %       r           - amplitudes
-%       po_cfg structure with field "viewParams"
+%       fa_cfg structure with field "viewParams"
 %       viewParams  - structure with optional fields
 %                       .thetaLim   (default: [-pi pi])
 %                       .thetaStep  (default: pi/4)
@@ -19,27 +19,27 @@ function po_view(theta, r, po_cfg)
 
 %% input check and defaults
 
-% sanity check: po_cfg.viewParams field exists
-if ~isfield(po_cfg,'viewParams')
-    error('po_cfg structure needs to have a "viewParams" field. see po_documentation() for details')
+% sanity check: fa_cfg.viewParams field exists
+if ~isfield(fa_cfg,'viewParams')
+    error('fa_cfg structure needs to have a "viewParams" field. see fa_documentation() for details')
 end
 
 
-if ~isfield(po_cfg.viewParams,'thetaLim')
-    po_cfg.viewParams.thetaLim = [-pi pi];
+if ~isfield(fa_cfg.viewParams,'thetaLim')
+    fa_cfg.viewParams.thetaLim = [-pi pi];
 end
-if ~isfield(po_cfg.viewParams,'thetaStep')
-    po_cfg.viewParams.thetaStep = pi/4;
+if ~isfield(fa_cfg.viewParams,'thetaStep')
+    fa_cfg.viewParams.thetaStep = pi/4;
 end
-if ~isfield(po_cfg.viewParams,'type')
-    po_cfg.viewParams.type = 'line';
+if ~isfield(fa_cfg.viewParams,'type')
+    fa_cfg.viewParams.type = 'line';
 end
 
 %% shortcuts
 
 nSamples  = numel(theta);
-thetaLim  = po_cfg.viewParams.thetaLim;
-thetaStep = po_cfg.viewParams.thetaStep;
+thetaLim  = fa_cfg.viewParams.thetaLim;
+thetaStep = fa_cfg.viewParams.thetaStep;
 
 
 %% general figure settings
@@ -55,7 +55,7 @@ nexttile(tld,1,[1 1])
 c = lines(1); % base color
 
 
-switch po_cfg.viewParams.type
+switch fa_cfg.viewParams.type
     case 'point'
         pp = polarplot(theta,r,'.','Color',c);
         pp.Parent.ThetaAxisUnits = "radians";
@@ -87,7 +87,7 @@ end
 
 nexttile(tld,2,[1 1])
 
-switch po_cfg.viewParams.type
+switch fa_cfg.viewParams.type
     case 'point'
         
         lp = plot(theta, r, '.', 'Color', c);
