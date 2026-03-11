@@ -1,4 +1,4 @@
-function [theta, r] = po_vonMisesMixSample(kappaVec,muVec,n)
+function [theta, r] = fa_vonMisesMixSample(kappaVec,muVec,n)
 
 % DESCRIPTION: sample from a mixture of von Mises distributions
 %
@@ -42,7 +42,7 @@ for sIdx = 1:n  %  loop through each sample index
     dIdx = randi(nDistr);  % choose randomly the distribution index
 
     % draw one sample from the distribution dIdx
-    theta(sIdx) = po_vonMisesSample(kappaVec(dIdx), muVec(dIdx), 1);
+    theta(sIdx) = fa_vonMisesSample(kappaVec(dIdx), muVec(dIdx), 1);
 end
 
 r = ones(n,1);
