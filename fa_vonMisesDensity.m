@@ -1,4 +1,4 @@
-function [theta, r] = po_vonMisesDensity(kappa,mu,theta)
+function [theta, r] = fa_vonMisesDensity(kappa,mu,theta)
 
 % DESCRIPTION: von Mises density determined for given theta values
 %
