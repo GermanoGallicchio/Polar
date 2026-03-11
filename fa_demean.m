@@ -1,6 +1,6 @@
-function [theta_demeaned, r_demeaned ] = po_demean(theta, rho)
+function [theta_demeaned, r_demeaned ] = fa_demean(theta, rho)
 % SYNTAX:
-%           [theta_centered, rho_centered ] = po_demean(theta, rho)
+%           [theta_centered, rho_centered ] = fa_demean(theta, rho)
 %
 % DESCRIPTION:  
 %   Remove the complex valued mean resultant from all complex
