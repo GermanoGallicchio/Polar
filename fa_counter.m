@@ -1,6 +1,6 @@
-function po_counter(counter,total)
+function fa_counter(counter,total)
 % SYNTAX:
-%   po_counter(counter,total)
+%   fa_counter(counter,total)
 %
 % DESCRIPTION:
 %   Utility function displaying progress during iteratiions (e.g., Monte Carlo loops).
@@ -18,10 +18,10 @@ function po_counter(counter,total)
 % EXAMPLE:
 %   for itIdx = 1:nIterations
 %       % ... do work ...
-%       po_counter(itIdx, nIterations);
+%       fa_counter(itIdx, nIterations);
 %   end
 %
-% NOTE: function used in both PhysioExplorer and Polar
+% NOTE: function used in both PhysioExplorer and Fase
 %
 % AUTHOR:
 %   Germano Gallicchio (germano.gallicchio@gmail.com)
