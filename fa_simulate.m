@@ -1,4 +1,4 @@
-function [theta, r] = fa_simulate(fa_cfg)
+function [theta_simulated, r_simulated] = fa_simulate(fa_cfg)
 % SYNTAX:
 %        [theta, r] = fa_simulate(fa_cfg)
 %
@@ -309,6 +309,8 @@ end
 
 %% implementation
 
+% set random seed
+prevRng = rng; % store whichever was set before
 rng(fa_cfg.simulation.randomSeed)
 
 
@@ -320,22 +322,22 @@ if      fa_cfg.simulation.theta  &&  ~fa_cfg.simulation.r   % simulate theta
             kappa = fa_cfg.simulation.distribution.theta.kappa;
             n     = fa_cfg.simulation.nSamples;
             % fa_vonMisesSample handles both single and mixture distributions internally
-            [theta, ~] = fa_vonMisesSample(kappa, mu, n);
-            r = ones(n, 1);  % unit magnitude for Case 1
+            [theta_simulated, ~] = fa_vonMisesSample(kappa, mu, n);
+            r_simulated = ones(n, 1);  % unit magnitude for Case 1
 
         case 'wrappedCauchy'
             mu = fa_cfg.simulation.distribution.theta.mu;
             rho = fa_cfg.simulation.distribution.theta.rho;
             n = fa_cfg.simulation.nSamples;
             % fa_wrappedCauchySample handles both single and mixture distributions internally
-            [theta, ~] = fa_wrappedCauchySample(rho, mu, n);
-            r = ones(n, 1);  % unit magnitude for Case 1
+            [theta_simulated, ~] = fa_wrappedCauchySample(rho, mu, n);
+            r_simulated = ones(n, 1);  % unit magnitude for Case 1
     end
 
 
     % ensure vectors are column
-    theta = theta(:);
-    r = r(:);
+    theta_simulated = theta_simulated(:);
+    r_simulated = r_simulated(:);
 
 
 elseif ~fa_cfg.simulation.theta  &&   fa_cfg.simulation.r   % simulate r, for uniform theta
@@ -345,30 +347,30 @@ elseif ~fa_cfg.simulation.theta  &&   fa_cfg.simulation.r   % simulate r, for un
             mu    = fa_cfg.simulation.distribution.r.mu;
             kappa = fa_cfg.simulation.distribution.r.kappa;
             n     = fa_cfg.simulation.nSamples;
-            theta = (-pi) + (0:(n-1))' * (2*pi / n);
-            [~, r] = fa_vonMisesDensity(kappa, mu, theta);
+            theta_simulated = (-pi) + (0:(n-1))' * (2*pi / n);
+            [~, r_simulated] = fa_vonMisesDensity(kappa, mu, theta_simulated);
             
             % Apply multiplicative Gaussian noise to r to make the process stochastic
             % (adds trial-to-trial variability, simulating realistic noisy data)
             if fa_cfg.simulation.r_noise > 0
 
-                r = r .* (1 + fa_cfg.simulation.r_noise * randn(size(r)));
-                r = max(r, 0);  % ensure non-negative
+                r_simulated = r_simulated .* (1 + fa_cfg.simulation.r_noise * randn(size(r_simulated)));
+                r_simulated = max(r_simulated, 0);  % ensure non-negative
             end
             
         case 'wrappedCauchy'
             mu    = fa_cfg.simulation.distribution.r.mu;
             rho   = fa_cfg.simulation.distribution.r.rho;
             n     = fa_cfg.simulation.nSamples;
-            theta = (-pi) + (0:(n-1))' * (2*pi / n);
-            [~, r] = fa_wrappedCauchyDensity(rho, mu, theta);
+            theta_simulated = (-pi) + (0:(n-1))' * (2*pi / n);
+            [~, r_simulated] = fa_wrappedCauchyDensity(rho, mu, theta_simulated);
             
             % Apply multiplicative Gaussian noise to r to make the process stochastic
             % (adds trial-to-trial variability, simulating realistic noisy data)
             if fa_cfg.simulation.r_noise > 0
 
-                r = r .* (1 + fa_cfg.simulation.r_noise * randn(size(r)));
-                r = max(r, 0);  % ensure non-negative
+                r_simulated = r_simulated .* (1 + fa_cfg.simulation.r_noise * randn(size(r_simulated)));
+                r_simulated = max(r_simulated, 0);  % ensure non-negative
             end
     end
 
@@ -381,18 +383,18 @@ elseif  fa_cfg.simulation.theta  &&   fa_cfg.simulation.r   % simulate both thet
             mu_theta    = fa_cfg.simulation.distribution.theta.mu;
             kappa_theta = fa_cfg.simulation.distribution.theta.kappa;
             n           = fa_cfg.simulation.nSamples;
-            [theta, ~]  = fa_vonMisesSample(kappa_theta, mu_theta, n);
+            [theta_simulated, ~]  = fa_vonMisesSample(kappa_theta, mu_theta, n);
             
             % Evaluate r density at the sampled theta values
             mu_r    = fa_cfg.simulation.distribution.r.mu;
             kappa_r = fa_cfg.simulation.distribution.r.kappa;
-            [~, r] = fa_vonMisesDensity(kappa_r, mu_r, theta);
+            [~, r_simulated] = fa_vonMisesDensity(kappa_r, mu_r, theta_simulated);
             
             % Apply multiplicative Gaussian noise to r to make the process stochastic
             % (adds trial-to-trial variability, simulating realistic noisy data)
             if fa_cfg.simulation.r_noise > 0
-                r = r .* (1 + fa_cfg.simulation.r_noise * randn(size(r)));
-                r = max(r, 0);  % ensure non-negative
+                r_simulated = r_simulated .* (1 + fa_cfg.simulation.r_noise * randn(size(r_simulated)));
+                r_simulated = max(r_simulated, 0);  % ensure non-negative
             end
             
         case 'wrappedCauchy'
@@ -400,24 +402,26 @@ elseif  fa_cfg.simulation.theta  &&   fa_cfg.simulation.r   % simulate both thet
             mu_theta  = fa_cfg.simulation.distribution.theta.mu;
             rho_theta = fa_cfg.simulation.distribution.theta.rho;
             n         = fa_cfg.simulation.nSamples;
-            [theta, ~] = fa_wrappedCauchySample(rho_theta, mu_theta, n);
+            [theta_simulated, ~] = fa_wrappedCauchySample(rho_theta, mu_theta, n);
             
             % Evaluate r density at the sampled theta values
             mu_r  = fa_cfg.simulation.distribution.r.mu;
             rho_r = fa_cfg.simulation.distribution.r.rho;
-            [~, r] = fa_wrappedCauchyDensity(rho_r, mu_r, theta);
+            [~, r_simulated] = fa_wrappedCauchyDensity(rho_r, mu_r, theta_simulated);
             
             % Apply multiplicative Gaussian noise to r to make the process stochastic
             % (adds trial-to-trial variability, simulating realistic noisy data)
             if fa_cfg.simulation.r_noise > 0
-                r = r .* (1 + fa_cfg.simulation.r_noise * randn(size(r)));
-                r = max(r, 0);  % ensure non-negative
+                r_simulated = r_simulated .* (1 + fa_cfg.simulation.r_noise * randn(size(r_simulated)));
+                r_simulated = max(r_simulated, 0);  % ensure non-negative
             end
     end
     
     % ensure vectors are column
-    theta = theta(:);
-    r = r(:);
+    theta_simulated = theta_simulated(:);
+    r_simulated = r_simulated(:);
 
+% restore random seed
+rng(prevRng);
 
 end
